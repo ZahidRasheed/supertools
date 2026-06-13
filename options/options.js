@@ -1,4 +1,5 @@
 import { createVaultId } from '../lib/clip-settings.js';
+import { buildSettingsExport, downloadSettingsExport } from '../lib/settings-export.js';
 
 const form = document.getElementById('settings-form');
 const apiKeyInput = document.getElementById('api-key');
@@ -15,6 +16,10 @@ const testVaultBtn = document.getElementById('test-vault');
 const nativeHostStatusEl = document.getElementById('native-host-status');
 const extensionIdEl = document.getElementById('extension-id');
 const installCommandEl = document.getElementById('install-command');
+const fontSizeInput = document.getElementById('font-size');
+const fontSizeLabel = document.getElementById('font-size-label');
+const showFloatingToolbarInput = document.getElementById('show-floating-toolbar');
+const exportSettingsBtn = document.getElementById('export-settings');
 
 const EXT_ID = chrome.runtime.id;
 extensionIdEl.textContent = EXT_ID;
@@ -87,7 +92,18 @@ function collectClipSettings() {
   return {
     writeMode: clipWriteModeSelect.value,
     defaultVaultId,
+    showFloatingToolbar: showFloatingToolbarInput.checked,
     vaults,
+  };
+}
+
+function collectSettingsFromForm() {
+  return {
+    apiKey: apiKeyInput.value.trim(),
+    model: modelSelect.value,
+    permanentPrompt: permanentPromptInput.value.trim(),
+    clip: collectClipSettings(),
+    ui: { fontSize: Number(fontSizeInput.value) || 14 },
   };
 }
 
@@ -102,6 +118,9 @@ async function loadSettings() {
 
   state.clip = settings.clip || { writeMode: 'auto', defaultVaultId: '', vaults: [] };
   clipWriteModeSelect.value = state.clip.writeMode || 'auto';
+  showFloatingToolbarInput.checked = state.clip.showFloatingToolbar !== false;
+  fontSizeInput.value = settings.ui?.fontSize || 14;
+  fontSizeLabel.textContent = fontSizeInput.value;
   renderVaults();
 
   const native = await chrome.runtime.sendMessage({ type: 'NATIVE_HOST_STATUS' });
@@ -117,6 +136,10 @@ toggleKeyBtn.addEventListener('click', () => {
   const isPassword = apiKeyInput.type === 'password';
   apiKeyInput.type = isPassword ? 'text' : 'password';
   toggleKeyBtn.textContent = isPassword ? 'Hide' : 'Show';
+});
+
+fontSizeInput.addEventListener('input', () => {
+  fontSizeLabel.textContent = fontSizeInput.value;
 });
 
 addVaultBtn.addEventListener('click', () => {
@@ -151,6 +174,7 @@ testVaultBtn.addEventListener('click', async () => {
       model: modelSelect.value,
       permanentPrompt: permanentPromptInput.value.trim(),
       clip,
+      ui: { fontSize: Number(fontSizeInput.value) || 14 },
     },
   });
 
@@ -181,6 +205,7 @@ form.addEventListener('submit', async (e) => {
       model: modelSelect.value,
       permanentPrompt: permanentPromptInput.value.trim(),
       clip: collectClipSettings(),
+      ui: { fontSize: Number(fontSizeInput.value) || 14 },
     },
   });
 
@@ -202,6 +227,14 @@ clearCacheBtn.addEventListener('click', async () => {
   const keys = Object.keys(all).filter((k) => k.startsWith('summary:'));
   if (keys.length) await chrome.storage.local.remove(keys);
   saveStatus.textContent = `Cleared ${keys.length} cached summaries.`;
+  setTimeout(() => { saveStatus.textContent = ''; }, 3000);
+});
+
+exportSettingsBtn.addEventListener('click', () => {
+  const payload = buildSettingsExport(collectSettingsFromForm());
+  downloadSettingsExport(payload);
+  saveStatus.textContent = 'Settings exported (API key excluded).';
+  saveStatus.classList.remove('error');
   setTimeout(() => { saveStatus.textContent = ''; }, 3000);
 });
 

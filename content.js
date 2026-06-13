@@ -3,6 +3,9 @@
  * Uses semantic selectors first, then falls back to body text with noise removed.
  */
 (function () {
+  if (window.__newsReaderContentScript) return;
+  window.__newsReaderContentScript = true;
+
   const NOISE_SELECTORS = [
     'script',
     'style',
@@ -174,6 +177,14 @@
 
     if (message.type === 'GET_SELECTION') {
       sendResponse({ ok: true, text: window.getSelection()?.toString() || '' });
+    }
+
+    if (message.type === 'GET_PAGE_META') {
+      const meta = window.NewsReaderHelpers?.getPageMeta?.() || {
+        title: document.title || '',
+        url: location.href,
+      };
+      sendResponse({ ok: true, ...meta });
     }
 
     return true;

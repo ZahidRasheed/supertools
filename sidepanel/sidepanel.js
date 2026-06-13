@@ -1,4 +1,5 @@
 import { renderSummaryContent } from './render-summary.js';
+import { initSelectionClip } from './selection-clip.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -30,12 +31,42 @@ const els = {
   btnWarningContinue: $('#btn-warning-continue'),
   clipVaultSelect: $('#clip-vault'),
   btnClip: $('#btn-clip'),
+  btnFontDown: $('#btn-font-down'),
+  btnFontUp: $('#btn-font-up'),
 };
 
 let currentTab = null;
 let sessionPromptOverride = '';
 let isLoading = false;
 let pendingSummarize = null;
+let fontSize = 14;
+let panelClip = null;
+
+const FONT_MIN = 12;
+const FONT_MAX = 22;
+
+function applyFontSize(size) {
+  fontSize = Math.min(FONT_MAX, Math.max(FONT_MIN, size));
+  document.documentElement.style.setProperty('--text-size', `${fontSize}px`);
+}
+
+async function saveFontSize() {
+  const res = await send('GET_SETTINGS');
+  if (!res?.ok) return;
+  await send('SAVE_SETTINGS', {
+    settings: {
+      ...res.settings,
+      ui: { ...(res.settings.ui || {}), fontSize },
+    },
+  });
+}
+
+async function loadFontSize() {
+  const res = await send('GET_SETTINGS');
+  if (res?.ok && res.settings?.ui?.fontSize) {
+    applyFontSize(res.settings.ui.fontSize);
+  }
+}
 
 function showState(name) {
   ['empty', 'loading', 'error', 'warning', 'result'].forEach((s) => {
@@ -91,6 +122,7 @@ async function refreshCurrentTab() {
   }
   currentTab = { id: tab.id, url: tab.url, title: tab.title || '' };
   els.pageTitle.textContent = currentTab.title || currentTab.url;
+  await send('ENSURE_CONTENT_SCRIPTS');
   return true;
 }
 
@@ -255,23 +287,31 @@ async function loadClipVaults() {
     .join('');
   els.clipVaultSelect.value = defaultId;
   els.btnClip.disabled = false;
+  await panelClip?.reloadVaults();
 }
 
 els.btnClip.addEventListener('click', async () => {
   const tab = await getActiveTab();
-  let text = '';
+  let text = panelClip?.getSelectedTextInPanel() || '';
+  let pageTitle = currentTab?.title || '';
+  let pageUrl = currentTab?.url || '';
 
-  if (tab?.id) {
+  if (!text.trim() && tab?.id) {
     try {
       const sel = await chrome.tabs.sendMessage(tab.id, { type: 'GET_SELECTION' });
       text = sel?.text || '';
+      const meta = await chrome.tabs.sendMessage(tab.id, { type: 'GET_PAGE_META' });
+      if (meta?.ok) {
+        pageTitle = meta.title || pageTitle;
+        pageUrl = meta.url || pageUrl;
+      }
     } catch {
       // ignore
     }
   }
 
   if (!text.trim()) {
-    els.errorText.textContent = 'Select text on the page first, then click Clip.';
+    els.errorText.textContent = 'Select text in the summary or on the page, then click Clip.';
     showState('error');
     return;
   }
@@ -280,6 +320,8 @@ els.btnClip.addEventListener('click', async () => {
   const res = await send('CLIP_SELECTION', {
     text,
     vaultId: els.clipVaultSelect.value,
+    pageTitle,
+    pageUrl,
   });
   setLoading(false);
 
@@ -290,6 +332,16 @@ els.btnClip.addEventListener('click', async () => {
   }
 
   await loadCachedSummary();
+});
+
+els.btnFontDown.addEventListener('click', () => {
+  applyFontSize(fontSize - 1);
+  saveFontSize();
+});
+
+els.btnFontUp.addEventListener('click', () => {
+  applyFontSize(fontSize + 1);
+  saveFontSize();
 });
 
 chrome.tabs.onActivated.addListener(() => loadCachedSummary());
@@ -304,8 +356,30 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     loadCachedSummary();
     loadClipVaults();
+    loadFontSize();
   }
 });
 
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'sync' || !changes.settings?.newValue?.ui?.fontSize) return;
+  applyFontSize(changes.settings.newValue.ui.fontSize);
+});
+
+loadFontSize();
 loadClipVaults();
 loadCachedSummary();
+
+panelClip = initSelectionClip({
+  root: els.summaryContent,
+  send,
+  getPageContext: () => ({
+    pageTitle: currentTab?.title || '',
+    pageUrl: currentTab?.url || '',
+  }),
+  onStatus: (message, isError) => {
+    if (isError) {
+      els.errorText.textContent = message;
+      showState('error');
+    }
+  },
+});

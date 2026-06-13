@@ -45,13 +45,22 @@
       </section>
 
       <section class="card">
+        <h2>Appearance</h2>
+        <label for="font-size">Summary font size (<span id="font-size-label">14</span>px)</label>
+        <input type="range" id="font-size" min="12" max="22" step="1" value="14" />
+      </section>
+
+      <section class="card">
         <h2>Obsidian Clippings</h2>
         <p class="hint">
-          Clip selected text into a daily markdown file (<code>YYYY-MM-DD.md</code>) inside your vault.
-          Right-click any selection → <strong>Clip to Obsidian</strong>.
-          <a href="https://github.com/coddingtonbear/obsidian-local-rest-api" target="_blank" rel="noopener">Local REST API</a>
-          plugin is optional; native host writes directly to your vault folder.
+          Select text on any page — a floating toolbar appears with colored vault buttons (first letter of each vault name).
+          Clips save to a daily markdown file (<code>YYYY-MM-DD.md</code>) inside your vault.
         </p>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="show-floating-toolbar" checked />
+          Show floating clip toolbar on text selection
+        </label>
 
         <label for="clip-write-mode">Write method</label>
         <select id="clip-write-mode">
@@ -78,6 +87,14 @@
           <button type="button" id="add-vault" class="btn ghost">+ Add vault</button>
           <button type="button" id="test-vault" class="btn ghost">Test default vault</button>
         </div>
+      </section>
+
+      <section class="card">
+        <h2>Backup</h2>
+        <p class="hint">
+          Download your settings as JSON. Your Gemini API key is <strong>not</strong> included — add it again after importing on another machine.
+        </p>
+        <button type="button" id="export-settings" class="btn ghost">Export settings</button>
       </section>
 
       <section class="card">

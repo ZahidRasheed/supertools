@@ -1,4 +1,6 @@
-import { getClipSettings, resolveVault, DEFAULT_CLIP_SETTINGS } from './lib/clip-settings.js';
+import { cleanUrl } from './lib/url-clean.js';
+import { ensureContentScripts } from './lib/content-scripts.js';
+import { getClipSettings, resolveVault, DEFAULT_CLIP_SETTINGS, DEFAULT_UI } from './lib/clip-settings.js';
 import { getCachedSummaryForUrl, pruneExpiredCache, setCachedSummary } from './lib/cache.js';
 import { summarizePage } from './lib/gemini.js';
 import { isNativeHostAvailable, saveClipping, testVaultConnection } from './lib/obsidian-writer.js';
@@ -10,6 +12,17 @@ const CLIP_MENU_ROOT = 'clip-obsidian-root';
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
 
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === 'complete' && tab.url?.startsWith('http')) {
+    ensureContentScripts(tabId);
+  }
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
+  await Promise.all(tabs.map((tab) => ensureContentScripts(tab.id)));
+});
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.get(SETTINGS_KEY).then(async (data) => {
     if (!data[SETTINGS_KEY]) {
@@ -19,10 +32,14 @@ chrome.runtime.onInstalled.addListener(() => {
           permanentPrompt: DEFAULT_PROMPT,
           model: 'gemini-2.5-flash',
           clip: { ...DEFAULT_CLIP_SETTINGS },
+          ui: { ...DEFAULT_UI },
         },
       });
     }
     await rebuildClipContextMenus();
+
+    const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
+    await Promise.all(tabs.map((tab) => ensureContentScripts(tab.id)));
   });
   pruneExpiredCache();
 });
@@ -34,9 +51,30 @@ async function getSettings() {
     permanentPrompt: DEFAULT_PROMPT,
     model: 'gemini-2.5-flash',
     clip: { ...DEFAULT_CLIP_SETTINGS },
+    ui: { ...DEFAULT_UI },
   };
   settings.clip = getClipSettings(settings);
+  settings.ui = { ...DEFAULT_UI, ...(settings.ui || {}) };
   return settings;
+}
+
+async function getPageMetaFromTab(tabId, fallbackTab) {
+  try {
+    const res = await chrome.tabs.sendMessage(tabId, { type: 'GET_PAGE_META' });
+    if (res?.ok) {
+      return {
+        title: res.title?.trim() || '',
+        url: cleanUrl(res.url || ''),
+      };
+    }
+  } catch {
+    // content script may be unavailable
+  }
+
+  return {
+    title: fallbackTab?.title?.trim() || '',
+    url: cleanUrl(fallbackTab?.url || ''),
+  };
 }
 
 async function rebuildClipContextMenus() {
@@ -71,16 +109,7 @@ async function rebuildClipContextMenus() {
   });
 }
 
-function notifyClip(title, message) {
-  chrome.notifications.create({
-    type: 'basic',
-    iconUrl: 'icons/icon128.png',
-    title,
-    message,
-  });
-}
-
-async function clipSelection({ text, tab, vaultId }) {
+async function clipSelection({ text, tab, vaultId, pageTitle, pageUrl }) {
   const settings = await getSettings();
   const vault = resolveVault(settings.clip, vaultId);
 
@@ -92,16 +121,23 @@ async function clipSelection({ text, tab, vaultId }) {
     throw new Error('No text selected.');
   }
 
+  let title = pageTitle?.trim();
+  let url = pageUrl ? cleanUrl(pageUrl) : '';
+
+  if (tab?.id && (!title || !url)) {
+    const meta = await getPageMetaFromTab(tab.id, tab);
+    title = title || meta.title;
+    url = url || meta.url;
+  }
+
   const result = await saveClipping({
     vault,
     text,
-    pageTitle: tab?.title || '',
-    pageUrl: tab?.url || '',
+    pageTitle: title || 'Untitled',
+    pageUrl: url,
     writeMode: settings.clip.writeMode || 'auto',
   });
 
-  const fileLabel = result.filePath?.split('/').slice(-2).join('/') || 'daily clipping file';
-  notifyClip('Clipped to Obsidian', `Saved to ${vault.name}: ${fileLabel}`);
   return result;
 }
 
@@ -113,6 +149,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
   if (!info.menuItemId?.startsWith('clip-vault-')) return;
 
+  if (tab?.id) await ensureContentScripts(tab.id);
+
   const vaultId = info.menuItemId.replace('clip-vault-', '');
 
   try {
@@ -121,12 +159,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       tab,
       vaultId,
     });
-  } catch (err) {
-    notifyClip('Clip failed', err.message || 'Could not save clipping.');
+  } catch {
+    // Clip errors are surfaced via in-extension toasts when using the toolbar.
   }
 });
 
 async function extractContentFromTab(tabId) {
+  await ensureContentScripts(tabId);
+
   try {
     const response = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_CONTENT' });
     if (response?.ok) return response.content;
@@ -247,6 +287,12 @@ async function handleMessage(message) {
           ...message.settings.clip,
         };
       }
+      if (message.settings?.ui) {
+        settings.ui = {
+          ...(await getSettings()).ui,
+          ...message.settings.ui,
+        };
+      }
       await chrome.storage.sync.set({ [SETTINGS_KEY]: settings });
       await rebuildClipContextMenus();
       return { ok: true, settings };
@@ -271,6 +317,8 @@ async function handleMessage(message) {
           text,
           tab,
           vaultId: message.vaultId || settings.clip.defaultVaultId,
+          pageTitle: message.pageTitle,
+          pageUrl: message.pageUrl,
         });
         return { ok: true, ...result };
       } catch (err) {
@@ -297,8 +345,19 @@ async function handleMessage(message) {
       return { ok: true, available: result.ok, error: result.error };
     }
 
-    case 'GET_CLIP_SETTINGS':
-      return { ok: true, clip: (await getSettings()).clip };
+    case 'ENSURE_CONTENT_SCRIPTS': {
+      const tab = await resolveTargetTab(message);
+      if (!tab?.id) {
+        return { ok: false, error: 'No active tab.' };
+      }
+      const injected = await ensureContentScripts(tab.id);
+      return { ok: true, injected };
+    }
+
+    case 'GET_CLIP_SETTINGS': {
+      const settings = await getSettings();
+      return { ok: true, clip: settings.clip };
+    }
 
     case 'REBUILD_CLIP_MENUS':
       await rebuildClipContextMenus();

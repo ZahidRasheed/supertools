@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "News Reader AI",
-  "version": "1.1.0",
+  "version": "1.2.6",
   "description": "Summarize pages with Gemini and clip selections to Obsidian.",
   "permissions": [
     "sidePanel",
@@ -10,7 +10,6 @@
     "scripting",
     "activeTab",
     "contextMenus",
-    "notifications",
     "nativeMessaging"
   ],
   "host_permissions": [
@@ -45,7 +44,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": ["content/helpers.js", "content.js", "content/clip-toolbar.js"],
       "run_at": "document_idle"
     }
   ]
