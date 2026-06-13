@@ -200,3 +200,11 @@ code {
   padding: 1px 5px;
   border-radius: 4px;
 }
+
+.install-cmd {
+  display: block;
+  margin-top: 6px;
+  padding: 8px;
+  word-break: break-all;
+  white-space: pre-wrap;
+}

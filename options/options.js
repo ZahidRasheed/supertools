@@ -13,6 +13,12 @@ const vaultListEl = document.getElementById('vault-list');
 const addVaultBtn = document.getElementById('add-vault');
 const testVaultBtn = document.getElementById('test-vault');
 const nativeHostStatusEl = document.getElementById('native-host-status');
+const extensionIdEl = document.getElementById('extension-id');
+const installCommandEl = document.getElementById('install-command');
+
+const EXT_ID = chrome.runtime.id;
+extensionIdEl.textContent = EXT_ID;
+installCommandEl.textContent = `cd native-host && ./install.sh ${EXT_ID}`;
 
 /** @type {{ clip: object }} */
 let state = { clip: { writeMode: 'auto', defaultVaultId: '', vaults: [] } };
@@ -99,9 +105,12 @@ async function loadSettings() {
   renderVaults();
 
   const native = await chrome.runtime.sendMessage({ type: 'NATIVE_HOST_STATUS' });
-  nativeHostStatusEl.textContent = native?.available
-    ? 'Native host: installed ✓ (writes directly to vault folder)'
-    : 'Native host: not installed — run native-host/install.sh for direct vault writes';
+  if (native?.available) {
+    nativeHostStatusEl.textContent = 'Native host: connected ✓';
+  } else {
+    nativeHostStatusEl.textContent = `Native host: not connected — ${native?.error || 'run install.sh below'}`;
+    nativeHostStatusEl.classList.add('error');
+  }
 }
 
 toggleKeyBtn.addEventListener('click', () => {

@@ -293,8 +293,8 @@ async function handleMessage(message) {
     }
 
     case 'NATIVE_HOST_STATUS': {
-      const available = await isNativeHostAvailable();
-      return { ok: true, available };
+      const result = await isNativeHostAvailable();
+      return { ok: true, available: result.ok, error: result.error };
     }
 
     case 'GET_CLIP_SETTINGS':
