@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Assistant vault configuration",
+  "type": "object",
+  "required": ["version", "vaults"],
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "defaultVaultId": { "type": "string" },
+    "vaults": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "path"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "clippingsFolder": { "type": "string", "default": "Clippings" }
+        }
+      }
+    }
+  }
+}
