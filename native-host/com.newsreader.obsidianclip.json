@@ -1,9 +1,0 @@
-{
-  "name": "com.newsreader.obsidianclip",
-  "description": "News Reader AI — clip selections to Obsidian vault files",
-  "path": "REPLACE_HOST_BIN",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://REPLACE_WITH_EXTENSION_ID/"
-  ]
-}
