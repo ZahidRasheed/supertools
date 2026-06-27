@@ -2,3 +2,14 @@
 *.pem
 .env
 .env.*
+node_modules/
+
+# macOS clipper build artifacts
+apps/macos-clipper/.build/
+apps/macos-clipper/dist/
+apps/macos-clipper/Resources/AppIcon.iconset/
+
+# Local settings backups and exports (vault paths, personal config)
+exports/backups/**/*
+!exports/backups/.gitkeep
+exports/*.json
