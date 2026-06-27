@@ -1,0 +1,40 @@
+---
+description: Personal app portfolio — monorepo layout, Übersicht widgets path, sharing rules
+alwaysApply: true
+---
+
+# Portfolio operating model
+
+Read `docs/REGISTRY.md` when the user mentions an app by name or asks where code lives.
+
+## Monorepo (default)
+
+Path: `/Users/zahidrasheed/Documents/Projects/Apps`
+
+- Shippable apps → `apps/<name>/`
+- Shared libraries → `packages/<name>/`
+- Cross-app scripts → `scripts/`
+- Portfolio docs → `docs/OPERATING_MODEL.md`, `docs/REGISTRY.md`
+
+Current apps: **Summary** (`apps/summary/`), **Assistant Clipper** (`apps/macos-clipper/`).
+
+## Übersicht desktop widgets
+
+When the user mentions **desktop widgets**, **Übersicht**, or widgets on the desktop:
+
+- Runtime path: `/Users/zahidrasheed/Library/Application Support/Übersicht/widgets/`
+- Übersicht is a separate macOS app; widgets do not live in the monorepo unless we add `apps/ubersicht-widgets/` with a deploy script
+- See `docs/REGISTRY.md` for known widgets (FootballMatches, Countdown, etc.)
+
+## Sharing with others
+
+- Never commit or bundle API keys, vault paths, or personal `exports/`
+- Chrome extensions: share folder; friend loads unpacked and adds own API key
+- macOS apps: share `.app` or source + `scripts/install.sh`; friend configures own vaults
+- Übersicht: share widget folder; friend copies into their Übersicht widgets directory
+- Run tests before preparing a shareable build
+
+## Config (not in git)
+
+- Assistant Clipper: `~/Library/Application Support/Assistant/`
+- Summary: Chrome `storage.sync`
