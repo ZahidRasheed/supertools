@@ -1,0 +1,12 @@
+{
+  "name": "assistant-workspace",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/summary"
+  ],
+  "scripts": {
+    "test": "npm test -w @assistant/clip-core",
+    "test:clip-core": "npm test -w @assistant/clip-core"
+  }
+}
