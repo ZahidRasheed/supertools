@@ -21,12 +21,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
                 accessibilityDescription: "Assistant Clipper"
             )
             button.image?.isTemplate = true
-            button.target = self
-            button.action = #selector(showMenuFromStatusBar(_:))
-            button.sendAction(on: [.leftMouseDown])
         }
 
         menu.delegate = self
+        statusItem.menu = menu
         rebuildMenu()
 
         appState.store.$config
@@ -35,10 +33,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             .store(in: &cancellables)
     }
 
-    @objc private func showMenuFromStatusBar(_ sender: Any?) {
+    func menuWillOpen(_ menu: NSMenu) {
         appState.prepareForMenuClip()
-        guard let button = statusItem.button else { return }
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height), in: button)
     }
 
     private func rebuildMenu() {
