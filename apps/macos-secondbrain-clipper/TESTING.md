@@ -5,7 +5,7 @@ How to catch bugs before manual testing in the browser/menu bar.
 ## Quick command
 
 ```bash
-cd apps/macos-clipper
+cd apps/macos-secondbrain-clipper
 bash scripts/test.sh
 ```
 
@@ -90,7 +90,7 @@ From repo root:
 
 ```yaml
 - name: Clipper tests
-  run: cd apps/macos-clipper && swift test
+  run: cd apps/macos-secondbrain-clipper && swift test
 ```
 
 ---

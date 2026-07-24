@@ -222,7 +222,7 @@ Add Swift tests in `ClipCoreTests` for URL/ics builders (no network).
 Command to run tests after changes:
 
 ```bash
-cd apps/macos-clipper && swift test
+cd apps/macos-secondbrain-clipper && swift test
 ```
 
 ---
@@ -237,5 +237,5 @@ cd apps/macos-clipper && swift test
 
 ## Related
 
-- Summary extension Gemini client: `apps/summary/lib/gemini.js`
+- Summary extension Gemini client: `apps/chrome-summary/lib/gemini.js`
 - Operating model: `docs/OPERATING_MODEL.md`

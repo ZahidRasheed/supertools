@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "apps/summary"
+    "apps/chrome-summary"
   ],
   "scripts": {
     "test": "npm test -w @assistant/clip-core",

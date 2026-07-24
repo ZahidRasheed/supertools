@@ -57,7 +57,7 @@ Before installs or config edits, run:
 bash scripts/backup-assistant-settings.sh
 ```
 
-`apps/macos-clipper/scripts/build-app.sh` and `install.sh` run this automatically. Restore from `exports/backups/<timestamp>/` if needed.
+`apps/macos-secondbrain-clipper/scripts/build-app.sh` and `install.sh` run this automatically. Restore from `exports/backups/<timestamp>/` if needed.
 
 ---
 
@@ -81,7 +81,7 @@ bash scripts/backup-assistant-settings.sh
 
 ### Naming
 
-- Folder names: lowercase, hyphenated (`macos-clipper`, not `MacOS Clipper`)
+- Folder names: lowercase, hyphenated (`macos-secondbrain-clipper`, not `MacOS Clipper`)
 - Product display names: user-facing (`Summary`, `Assistant Clipper`)
 - Shared packages: `@assistant/<name>` in `package.json` (JS) or Swift target `ClipCore`
 
@@ -119,18 +119,21 @@ Until migrated, treat the Übersicht folder as **canonical runtime** and documen
 ```
 Apps/
 ├── apps/
-│   ├── summary/              Chrome extension (Gemini summaries)
-│   └── macos-clipper/        macOS menu bar clipper
+│   ├── chrome-summary/                 Chrome extension (Gemini summaries)
+│   ├── macos-secondbrain-clipper/      macOS menu bar Obsidian clipper
+│   ├── instagram-downloader/           Instagram download / saved sync
+│   └── ESP32/                          AtomS3R firmware (PlatformIO)
 ├── packages/
-│   └── clip-core/            Shared clip format (JS) + tests
+│   └── clip-core/                      Shared clip format (JS) + tests
 ├── scripts/
-│   └── migrate-vaults.mjs
+│   ├── migrate-vaults.mjs
+│   └── backup-assistant-settings.sh
 ├── docs/
-│   ├── OPERATING_MODEL.md    ← this file
-│   └── REGISTRY.md           ← catalog of all projects
-├── exports/                  Local backups (gitignore secrets)
-├── package.json              npm workspaces root
-└── README.md                 Quick start per app
+│   ├── OPERATING_MODEL.md              ← this file
+│   └── REGISTRY.md                     ← catalog of all projects
+├── exports/                            Local backups (gitignore secrets)
+├── package.json                        npm workspaces root
+└── README.md                           Quick start per app
 ```
 
 ---
@@ -155,10 +158,13 @@ Apps/
 ### AI / Cursor agent
 
 - Read `docs/REGISTRY.md` first when the request mentions an app by name
+- If more than one app could apply → **ask which app** before editing
 - **Desktop widgets** → Übersicht path (§3)
-- **Summary / extension** → `apps/summary/`
-- **Clipper / Obsidian clip** → `apps/macos-clipper/`
-- Do not commit API keys, vault paths, or `exports/` with personal data unless explicitly requested
+- **Summary / extension** → `apps/chrome-summary/`
+- **Clipper / Obsidian clip** → `apps/macos-secondbrain-clipper/`
+- **Instagram download** → `apps/instagram-downloader/`
+- **ESP32 / Atom / scale** → `apps/ESP32/`
+- Do not commit API keys, vault paths, MQTT passwords, or `exports/` with personal data unless explicitly requested
 
 ---
 
@@ -203,6 +209,8 @@ Apps/
 |-----|-----------------|---------|
 | Summary | Chrome `storage.sync` | No |
 | Assistant Clipper | `~/Library/Application Support/Assistant/` | No |
+| Instagram downloader | App `.data/` / session under the app (see its README) | No (secrets) |
+| ESP32 / AtomS3R | Device NVS + MQTT credentials (not in git) | No |
 | Übersicht widgets | Often hardcoded in widget or local JSON | Source in git; personal URLs maybe not |
 
 Use **export/import JSON** for portable settings (API keys excluded), like Summary settings export and vault migration script.
@@ -214,7 +222,7 @@ Use **export/import JSON** for portable settings (API keys excluded), like Summa
 | Scope | Command | When |
 |-------|---------|------|
 | JS shared packages | `npm test` (root) | Any change to `packages/` |
-| Mac clipper | `cd apps/macos-clipper && swift test` | Clip format / writer changes |
+| Mac clipper | `cd apps/macos-secondbrain-clipper && swift test` | Clip format / writer changes |
 | Chrome extension | Manual smoke test in Chrome | UI or background changes |
 | Übersicht widgets | Refresh widget in Übersicht | After edit |
 

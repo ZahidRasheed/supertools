@@ -13,18 +13,24 @@ Monorepo: `/Users/zahidrasheed/Documents/Personal/Apps`
 
 | App | Path | User may say |
 |-----|------|----------------|
-| **Summary** | `apps/summary/` | Chrome extension, Gemini summarize, side panel |
-| **Assistant Clipper** | `apps/macos-clipper/` | Clipper, Obsidian clip, bookmark menu bar |
+| **Summary** | `apps/chrome-summary/` | Chrome Summary, Gemini summarize, side panel |
+| **Assistant Clipper** | `apps/macos-secondbrain-clipper/` | Clipper, Second Brain clipper, Obsidian clip |
 | **Instagram downloader** | `apps/instagram-downloader/` | Instagram download, reel/post, ig-saved-sync |
+| **ESP32 / AtomS3R** | `apps/ESP32/` | ESP32, Atom, scale bridge, RunSTAR, MQTT |
 | **clip-core** | `packages/clip-core/` | shared clip format |
 
 **Widgets** = Übersicht only → `~/Library/Application Support/Übersicht/widgets/`
+
+### Renames
+
+- `apps/summary/` → `apps/chrome-summary/`
+- `apps/macos-clipper/` → `apps/macos-secondbrain-clipper/`
 
 ## Disambiguation (required)
 
 - Infer from aliases in the table / `docs/REGISTRY.md`.
 - If the user says “the app”, “fix it”, “download this”, or anything that could mean **more than one** product → **ask which app** before editing or running commands.
-- Do not guess between Clipper vs Instagram downloader vs Summary vs Übersicht.
+- Do not guess between Clipper vs Instagram downloader vs Summary vs ESP32 vs Übersicht.
 
 ## Layout
 
@@ -35,6 +41,6 @@ Monorepo: `/Users/zahidrasheed/Documents/Personal/Apps`
 
 ## Sharing / secrets
 
-- Never commit API keys, vault paths, or personal `exports/`
+- Never commit API keys, vault paths, MQTT passwords, or personal `exports/`
 - Clipper config: `~/Library/Application Support/Assistant/`
 - Summary: Chrome `storage.sync`

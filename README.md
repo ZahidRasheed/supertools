@@ -8,9 +8,10 @@ Agents should use the registry to pick the right app; if unclear, they ask.
 
 | App | Folder | What it does |
 |-----|--------|--------------|
-| **Summary** | `apps/summary/` | Chrome extension — summarize web pages with Gemini |
-| **Assistant Clipper** | `apps/macos-clipper/` | macOS menu bar app — clip selected text to Obsidian vaults |
+| **Summary** | `apps/chrome-summary/` | Chrome extension — summarize web pages with Gemini |
+| **Assistant Clipper** | `apps/macos-secondbrain-clipper/` | macOS menu bar app — clip selected text to Obsidian vaults |
 | **Instagram downloader** | `apps/instagram-downloader/` | Download Instagram posts / saved collections (`ig-saved-sync`) |
+| **ESP32 / AtomS3R** | `apps/ESP32/` | AtomS3R firmware — Wi‑Fi/MQTT/BLE scale bridge → Home Assistant |
 
 Shared clipping format and vault schema live in `packages/clip-core/`. Desktop widgets are Übersicht (see registry), not this table.
 
@@ -23,7 +24,7 @@ Shared clipping format and vault schema live in `packages/clip-core/`. Desktop w
 1. Open `chrome://extensions` → **Developer mode** ON
 2. **Load unpacked** → select:
    ```
-   apps/summary
+   apps/chrome-summary
    ```
 3. Pin **Summary** in the toolbar
 4. Open **Settings** → add your Gemini API key and prompt
@@ -41,7 +42,7 @@ System-wide floating popup when you select text (any app). Saves to daily markdo
 ### Build & install
 
 ```bash
-cd apps/macos-clipper
+cd apps/macos-secondbrain-clipper
 ./scripts/build-app.sh
 ./scripts/install.sh
 ```
@@ -49,7 +50,7 @@ cd apps/macos-clipper
 Or manually:
 
 ```bash
-cp -R "apps/macos-clipper/dist/Assistant Clipper.app" /Applications/
+cp -R "apps/macos-secondbrain-clipper/dist/Assistant Clipper.app" /Applications/
 open "/Applications/Assistant Clipper.app"
 ```
 
@@ -87,8 +88,28 @@ Config files:
 ### Run tests
 
 ```bash
-cd apps/macos-clipper
+cd apps/macos-secondbrain-clipper
 swift test
+```
+
+---
+
+## Instagram downloader
+
+```bash
+cd apps/instagram-downloader
+# see apps/instagram-downloader/README.md
+```
+
+---
+
+## ESP32 / AtomS3R
+
+Firmware for M5Stack AtomS3R Ext devices (MQTT → Home Assistant, optional RunSTAR scale bridge).
+
+```bash
+cd apps/ESP32
+# see apps/ESP32/README.md — PlatformIO build/flash
 ```
 
 ---
@@ -100,10 +121,10 @@ swift test
 npm test
 
 # Mac clipper unit tests (Swift)
-cd apps/macos-clipper && swift test
+cd apps/macos-secondbrain-clipper && swift test
 
 # Mac app (debug)
-cd apps/macos-clipper && swift build && swift run
+cd apps/macos-secondbrain-clipper && swift build && swift run
 ```
 
 ---
@@ -112,15 +133,16 @@ cd apps/macos-clipper && swift build && swift run
 
 ```
 apps/
-  summary/                 Chrome extension (Gemini summaries)
-  macos-clipper/           macOS menu bar Obsidian clipper
-  instagram-downloader/    Instagram download / saved sync CLI
+  chrome-summary/              Chrome extension (Gemini summaries)
+  macos-secondbrain-clipper/   macOS menu bar Obsidian clipper
+  instagram-downloader/        Instagram download / saved sync CLI
+  ESP32/                       AtomS3R firmware (PlatformIO)
 packages/
-  clip-core/               Shared clip markdown format + vault schema
+  clip-core/                   Shared clip markdown format + vault schema
 scripts/
-  migrate-vaults.mjs       Import vaults from old extension export
+  migrate-vaults.mjs           Import vaults from old extension export
   backup-assistant-settings.sh
 docs/
-  OPERATING_MODEL.md       Portfolio layout, sharing, Übersicht
-  REGISTRY.md              Catalog of all apps — keep updated
+  OPERATING_MODEL.md           Portfolio layout, sharing, Übersicht
+  REGISTRY.md                  Catalog of all apps — keep updated
 ```

@@ -4,10 +4,17 @@
 .env.*
 node_modules/
 
-# macOS clipper build artifacts
+# macOS clipper build artifacts (current + legacy folder names)
+apps/macos-secondbrain-clipper/.build/
+apps/macos-secondbrain-clipper/dist/
+apps/macos-secondbrain-clipper/Resources/AppIcon.iconset/
 apps/macos-clipper/.build/
 apps/macos-clipper/dist/
 apps/macos-clipper/Resources/AppIcon.iconset/
+
+# ESP32 / PlatformIO
+apps/ESP32/.pio/
+apps/ESP32/firmware.bin
 
 # Local settings backups and exports (vault paths, personal config)
 exports/backups/**/*
