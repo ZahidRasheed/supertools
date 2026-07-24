@@ -1,17 +1,18 @@
 # Apps
 
-Monorepo at `/Users/zahidrasheed/Documents/Projects/Apps`
+Monorepo at `/Users/zahidrasheed/Documents/Personal/Apps`
 
-**Operating model:** [docs/OPERATING_MODEL.md](docs/OPERATING_MODEL.md) · **Project catalog:** [docs/REGISTRY.md](docs/REGISTRY.md)
+**Operating model:** [docs/OPERATING_MODEL.md](docs/OPERATING_MODEL.md) · **App catalog (source of truth):** [docs/REGISTRY.md](docs/REGISTRY.md)
 
-Two apps for reading and clipping:
+Agents should use the registry to pick the right app; if unclear, they ask.
 
 | App | Folder | What it does |
 |-----|--------|--------------|
 | **Summary** | `apps/summary/` | Chrome extension — summarize web pages with Gemini |
 | **Assistant Clipper** | `apps/macos-clipper/` | macOS menu bar app — clip selected text to Obsidian vaults |
+| **Instagram downloader** | `apps/instagram-downloader/` | Download Instagram posts / saved collections (`ig-saved-sync`) |
 
-Shared clipping format and vault schema live in `packages/clip-core/`.
+Shared clipping format and vault schema live in `packages/clip-core/`. Desktop widgets are Übersicht (see registry), not this table.
 
 ---
 
@@ -111,13 +112,15 @@ cd apps/macos-clipper && swift build && swift run
 
 ```
 apps/
-  summary/           Chrome extension (Gemini summaries only)
-  macos-clipper/     macOS menu bar clipper
+  summary/                 Chrome extension (Gemini summaries)
+  macos-clipper/           macOS menu bar Obsidian clipper
+  instagram-downloader/    Instagram download / saved sync CLI
 packages/
-  clip-core/         Shared clip markdown format + vault schema
+  clip-core/               Shared clip markdown format + vault schema
 scripts/
-  migrate-vaults.mjs Import vaults from old extension export
+  migrate-vaults.mjs       Import vaults from old extension export
+  backup-assistant-settings.sh
 docs/
-  OPERATING_MODEL.md Portfolio layout, sharing, Übersicht widgets
-  REGISTRY.md        Catalog of all apps and external paths
+  OPERATING_MODEL.md       Portfolio layout, sharing, Übersicht
+  REGISTRY.md              Catalog of all apps — keep updated
 ```
