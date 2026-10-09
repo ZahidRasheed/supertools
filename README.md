@@ -9,6 +9,7 @@ Agents should use the registry to pick the right app; if unclear, they ask.
 | App | Folder | What it does |
 |-----|--------|--------------|
 | **Summary** | `apps/chrome-summary/` | Chrome extension — summarize web pages with Gemini |
+| **Supertools** | `apps/chrome-supertools/` | Chrome extension — small tools (copy all tab URLs, …) |
 | **Assistant Clipper** | `apps/macos-secondbrain-clipper/` | macOS menu bar app — clip selected text to Obsidian vaults |
 | **Instagram downloader** | `apps/instagram-downloader/` | Download Instagram posts / saved collections (`ig-saved-sync`) |
 | **ESP32 / AtomS3R** | `apps/ESP32/` | AtomS3R firmware — Wi‑Fi/MQTT/BLE scale bridge → Home Assistant |
@@ -32,6 +33,23 @@ Shared clipping format and vault schema live in `packages/clip-core/`. Desktop w
 ### Use
 
 - Open any article → click the extension icon → **Summarize**
+
+---
+
+## Supertools (Chrome extension)
+
+### Install
+
+1. Open `chrome://extensions` → **Developer mode** ON
+2. **Load unpacked** → select:
+   ```
+   apps/chrome-supertools
+   ```
+3. Pin **Supertools** in the toolbar
+
+### Use
+
+- Click the extension icon → **Copy all urls** (current window, `http`/`https` only, one URL per line)
 
 ---
 
@@ -134,6 +152,7 @@ cd apps/macos-secondbrain-clipper && swift build && swift run
 ```
 apps/
   chrome-summary/              Chrome extension (Gemini summaries)
+  chrome-supertools/           Chrome extension (small tools menu)
   macos-secondbrain-clipper/   macOS menu bar Obsidian clipper
   instagram-downloader/        Instagram download / saved sync CLI
   ESP32/                       AtomS3R firmware (PlatformIO)

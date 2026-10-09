@@ -120,6 +120,7 @@ Until migrated, treat the Übersicht folder as **canonical runtime** and documen
 Apps/
 ├── apps/
 │   ├── chrome-summary/                 Chrome extension (Gemini summaries)
+│   ├── chrome-supertools/              Chrome extension (small tools menu)
 │   ├── macos-secondbrain-clipper/      macOS menu bar Obsidian clipper
 │   ├── instagram-downloader/           Instagram download / saved sync
 │   └── ESP32/                          AtomS3R firmware (PlatformIO)
@@ -161,6 +162,7 @@ Apps/
 - If more than one app could apply → **ask which app** before editing
 - **Desktop widgets** → Übersicht path (§3)
 - **Summary / extension** → `apps/chrome-summary/`
+- **Supertools / copy all urls** → `apps/chrome-supertools/`
 - **Clipper / Obsidian clip** → `apps/macos-secondbrain-clipper/`
 - **Instagram download** → `apps/instagram-downloader/`
 - **ESP32 / Atom / scale** → `apps/ESP32/`

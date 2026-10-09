@@ -14,6 +14,7 @@ Monorepo: `/Users/zahidrasheed/Documents/Personal/Apps`
 | App | Path | User may say |
 |-----|------|----------------|
 | **Summary** | `apps/chrome-summary/` | Chrome Summary, Gemini summarize, side panel |
+| **Supertools** | `apps/chrome-supertools/` | Supertools, chrome-supertools, copy all urls |
 | **Assistant Clipper** | `apps/macos-secondbrain-clipper/` | Clipper, Second Brain clipper, Obsidian clip |
 | **Instagram downloader** | `apps/instagram-downloader/` | Instagram download, reel/post, ig-saved-sync |
 | **ESP32 / AtomS3R** | `apps/ESP32/` | ESP32, Atom, scale bridge, RunSTAR, MQTT |
@@ -30,7 +31,7 @@ Monorepo: `/Users/zahidrasheed/Documents/Personal/Apps`
 
 - Infer from aliases in the table / `docs/REGISTRY.md`.
 - If the user says “the app”, “fix it”, “download this”, or anything that could mean **more than one** product → **ask which app** before editing or running commands.
-- Do not guess between Clipper vs Instagram downloader vs Summary vs ESP32 vs Übersicht.
+- Do not guess between Clipper vs Instagram downloader vs Summary vs Supertools vs ESP32 vs Übersicht.
 
 ## Layout
 

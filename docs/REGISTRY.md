@@ -11,6 +11,7 @@ Monorepo root: `/Users/zahidrasheed/Documents/Personal/Apps`
 | Name | Aliases / how user may say it | Type | Source path | Install / runtime | Notes |
 |------|-------------------------------|------|-------------|-------------------|-------|
 | **Summary** | Summary, Chrome Summary, chrome-summary, Gemini summarizer, side panel | Chrome extension | `apps/chrome-summary/` | Chrome → Load unpacked | Was `apps/summary/` |
+| **Supertools** | Supertools, chrome-supertools, copy all urls | Chrome extension | `apps/chrome-supertools/` | Chrome → Load unpacked | Popup tools; v1: copy current-window http(s) URLs |
 | **Assistant Clipper** | Clipper, Second Brain clipper, macos-secondbrain-clipper, Obsidian clip, bookmark menu | macOS menu bar app | `apps/macos-secondbrain-clipper/` | `/Applications/Assistant Clipper.app` | Was `apps/macos-clipper/`; config: `~/Library/Application Support/Assistant/` |
 | **Instagram downloader** | Instagram, ig-saved-sync, download reel/post, saved sync | Python CLI app | `apps/instagram-downloader/` | `.venv` + CLI in that app | Downloads under `apps/instagram-downloader/downloads/` |
 | **ESP32 / AtomS3R** | ESP32, AtomS3R, Atom, scale bridge, RunSTAR, house fleet | Embedded firmware (PlatformIO) | `apps/ESP32/` | Flash via PlatformIO; MQTT → Home Assistant | AtomS3R Ext fleet; scale BLE → MQTT |
@@ -47,6 +48,7 @@ When user says **widgets** / **desktop widgets**, they mean Übersicht.
 | User says… | Work here | Unsure? |
 |------------|-----------|---------|
 | Summary, chrome-summary, Gemini summarize | `apps/chrome-summary/` | — |
+| Supertools, chrome-supertools, copy all urls | `apps/chrome-supertools/` | — |
 | Clipper, Second Brain clip, Obsidian bookmark menu | `apps/macos-secondbrain-clipper/` | — |
 | Instagram, download post/reel, saved sync | `apps/instagram-downloader/` | — |
 | ESP32, Atom, AtomS3R, scale, RunSTAR | `apps/ESP32/` | — |
