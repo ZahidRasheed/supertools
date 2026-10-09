@@ -1,0 +1,42 @@
+body {
+  margin: 0;
+  padding: 12px 14px;
+  min-width: 220px;
+  font: 13px/1.4 system-ui, -apple-system, sans-serif;
+  color: #1a1a1a;
+  background: #f7f7f5;
+}
+
+h1 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+#tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#tools button {
+  appearance: none;
+  border: 1px solid #c8c8c4;
+  border-radius: 6px;
+  background: #fff;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+#tools button:hover {
+  background: #efefeb;
+}
+
+#status {
+  margin: 10px 0 0;
+  min-height: 1.2em;
+  color: #444;
+  font-size: 12px;
+}
