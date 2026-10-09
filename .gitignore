@@ -4,6 +4,10 @@
 .env.*
 node_modules/
 
+# Agent / git worktree scratch
+.worktrees/
+.superpowers/
+
 # macOS clipper build artifacts (current + legacy folder names)
 apps/macos-secondbrain-clipper/.build/
 apps/macos-secondbrain-clipper/dist/
@@ -11,6 +15,10 @@ apps/macos-secondbrain-clipper/Resources/AppIcon.iconset/
 apps/macos-clipper/.build/
 apps/macos-clipper/dist/
 apps/macos-clipper/Resources/AppIcon.iconset/
+
+# Password Bridge
+apps/macos-password-bridge/.build/
+apps/macos-password-bridge/dist/
 
 # ESP32 / PlatformIO
 apps/ESP32/.pio/
