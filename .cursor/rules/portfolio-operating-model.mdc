@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Portfolio apps — always know which one
 
-Monorepo: `/Users/zahidrasheed/Documents/Personal/Apps`
+Monorepo: `/Users/zahidrasheed/Documents/Personal/super-tools`
 
 **Canonical catalog:** `docs/REGISTRY.md` — read it when the target app is unclear or when adding/retiring apps.
 
@@ -14,7 +14,7 @@ Monorepo: `/Users/zahidrasheed/Documents/Personal/Apps`
 | App | Path | User may say |
 |-----|------|----------------|
 | **Summary** | `apps/chrome-summary/` | Chrome Summary, Gemini summarize, side panel |
-| **Supertools** | `apps/chrome-supertools/` | Supertools, chrome-supertools, copy all urls |
+| **Supertools** | `apps/chrome-supertools/` | Supertools, chrome-supertools, copy all open links, copy link cleaned |
 | **Assistant Clipper** | `apps/macos-secondbrain-clipper/` | Clipper, Second Brain clipper, Obsidian clip |
 | **Instagram downloader** | `apps/instagram-downloader/` | Instagram download, reel/post, ig-saved-sync |
 | **ESP32 / AtomS3R** | `apps/ESP32/` | ESP32, Atom, scale bridge, RunSTAR, MQTT |

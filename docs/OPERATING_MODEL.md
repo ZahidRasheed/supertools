@@ -8,7 +8,7 @@ How we organize, build, maintain, and share apps across this workspace and relat
 
 ```mermaid
 flowchart TB
-  subgraph monorepo ["Monorepo — ~/Documents/Personal/Apps"]
+  subgraph monorepo ["Monorepo — ~/Documents/Personal/super-tools"]
     APPS[apps/ — shippable products]
     PKG[packages/ — shared libraries]
     SCR[scripts/ — cross-app tooling]
@@ -35,7 +35,7 @@ flowchart TB
 
 | Layer | Path | Purpose |
 |-------|------|---------|
-| **Monorepo** | `/Users/zahidrasheed/Documents/Personal/Apps` | Default home for extensions, Mac apps, shared packages |
+| **Monorepo** | `/Users/zahidrasheed/Documents/Personal/super-tools` | Default home for extensions, Mac apps, shared packages |
 | **Satellite** | Other paths (see [REGISTRY.md](./REGISTRY.md)) | Tools with their own install location (Übersicht, etc.) |
 | **Runtime data** | `~/Library/Application Support/…` | User config, vaults, caches — never committed |
 | **Exports / backups** | `exports/` in monorepo | Optional JSON exports; scrub secrets before sharing |

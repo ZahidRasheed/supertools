@@ -41,11 +41,6 @@ export function cacheKeyForUrl(url) {
   return `summary:${hashString(normalizeUrl(url))}`;
 }
 
-/** @deprecated Use cacheKeyForUrl — kept for legacy entry cleanup */
-export function cacheKey(url, prompt) {
-  return `summary:${hashString(normalizeUrl(url) + '|' + prompt)}`;
-}
-
 export function isCacheValid(entry) {
   if (!entry?.summary || !entry?.timestamp) return false;
   return Date.now() - entry.timestamp < CACHE_TTL_MS;

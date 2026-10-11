@@ -100,7 +100,6 @@ BLE frames stay on the Atom page for debug; they are **not** flooded to MQTT.
 | High | App/HA layer: compute composition from weight + impedance |
 | Medium | Deploy 2nd/3rd Atom with same firmware |
 | Medium | Extra modes (env / presence / IR) behind `mode` setting |
-| Low | Optional: keep `receiver/` only for lab tests |
 | Parked | Thermex via Atom BLE (wait for FW / API decision) |
 
 ---
@@ -121,9 +120,9 @@ BLE frames stay on the Atom page for debug; they are **not** flooded to MQTT.
 1. **USB once:** `pio run -e atoms3r-ext -t upload`
 2. Join Wi‑Fi AP **`AtomS3R-Setup`** → your home network
 3. Open `http://atoms3r.local/` or device IP
-4. Set **Name**, **MQTT** host/user/pass, **Mode**
+4. Set **Name**, **MQTT** host/user/pass, **Mode**. Setting an MQTT password also locks the web UI and OTA (HTTP Basic; username = MQTT user or `admin`). Password field is never echoed back.
 5. For scale Atom: Mode = **Scale bridge**, prefix `Runstar-`, sex/age/height → Save
-6. Later updates: OTA upload `firmware.bin` from project root (copied after each build)
+6. Later updates: OTA at `/update` (disabled until MQTT password is set). Upload `firmware.bin` from project root.
 
 ### Scale weigh-in
 1. Disconnect Starfit from the scale  
@@ -136,7 +135,7 @@ BLE frames stay on the Atom page for debug; they are **not** flooded to MQTT.
 ## Build
 
 ```bash
-cd /Users/zahidrasheed/Documents/Personal/M5Stack
+cd /Users/zahidrasheed/Documents/Personal/super-tools/apps/ESP32
 pio run -e atoms3r-ext
 cp .pio/build/atoms3r-ext/firmware.bin ./firmware.bin   # for OTA
 ```
@@ -152,7 +151,6 @@ include/     config, core APIs, BLE capture, event log
 src/         main, wifi, web UI, mqtt, scale, logs
 partitions_ota_8MB.csv
 platformio.ini
-receiver/    optional early FastAPI saver (not production path)
 ```
 
 ---

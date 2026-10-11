@@ -1,10 +1,7 @@
-export const CONTENT_SCRIPT_FILES = [
-  'content/helpers.js',
-  'content.js',
-];
+export const CONTENT_SCRIPT_FILES = ['content.js'];
 
 /**
- * Inject page scripts if they are not already present (e.g. site access "on click").
+ * Inject page scripts if they are not already present (on Summarize).
  * @param {number} tabId
  */
 export async function ensureContentScripts(tabId) {

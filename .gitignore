@@ -16,10 +16,6 @@ apps/macos-clipper/.build/
 apps/macos-clipper/dist/
 apps/macos-clipper/Resources/AppIcon.iconset/
 
-# Password Bridge
-apps/macos-password-bridge/.build/
-apps/macos-password-bridge/dist/
-
 # ESP32 / PlatformIO
 apps/ESP32/.pio/
 apps/ESP32/firmware.bin

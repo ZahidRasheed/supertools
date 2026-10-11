@@ -1,6 +1,6 @@
 # Apps
 
-Monorepo at `/Users/zahidrasheed/Documents/Personal/Apps`
+Monorepo at `/Users/zahidrasheed/Documents/Personal/super-tools`
 
 **Operating model:** [docs/OPERATING_MODEL.md](docs/OPERATING_MODEL.md) · **App catalog (source of truth):** [docs/REGISTRY.md](docs/REGISTRY.md)
 
@@ -49,7 +49,7 @@ Shared clipping format and vault schema live in `packages/clip-core/`. Desktop w
 
 ### Use
 
-- Click the extension icon → **Copy all urls** (current window, `http`/`https` only, one URL per line)
+- Click the extension icon → **Copy all open links** or **Copy Link (Cleaned)**
 
 ---
 

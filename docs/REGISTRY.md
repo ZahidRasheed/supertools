@@ -2,7 +2,7 @@
 
 **Source of truth for which apps exist.** Update this whenever you add, rename, or retire a project.
 
-Monorepo root: `/Users/zahidrasheed/Documents/Personal/Apps`
+Monorepo root: `/Users/zahidrasheed/Documents/Personal/super-tools`
 
 ---
 
@@ -11,11 +11,11 @@ Monorepo root: `/Users/zahidrasheed/Documents/Personal/Apps`
 | Name | Aliases / how user may say it | Type | Source path | Install / runtime | Notes |
 |------|-------------------------------|------|-------------|-------------------|-------|
 | **Summary** | Summary, Chrome Summary, chrome-summary, Gemini summarizer, side panel | Chrome extension | `apps/chrome-summary/` | Chrome → Load unpacked | Was `apps/summary/` |
-| **Supertools** | Supertools, chrome-supertools, copy all urls | Chrome extension | `apps/chrome-supertools/` | Chrome → Load unpacked | Popup tools; v1: copy current-window http(s) URLs |
+| **Supertools** | Supertools, chrome-supertools, copy all open links, copy link cleaned | Chrome extension | `apps/chrome-supertools/` | Chrome → Load unpacked | Popup tools; copy open links, clean active URL |
 | **Assistant Clipper** | Clipper, Second Brain clipper, macos-secondbrain-clipper, Obsidian clip, bookmark menu | macOS menu bar app | `apps/macos-secondbrain-clipper/` | `/Applications/Assistant Clipper.app` | Was `apps/macos-clipper/`; config: `~/Library/Application Support/Assistant/` |
 | **Instagram downloader** | Instagram, ig-saved-sync, download reel/post, saved sync | Python CLI app | `apps/instagram-downloader/` | `.venv` + CLI in that app | Downloads under `apps/instagram-downloader/downloads/` |
 | **ESP32 / AtomS3R** | ESP32, AtomS3R, Atom, scale bridge, RunSTAR, house fleet | Embedded firmware (PlatformIO) | `apps/ESP32/` | Flash via PlatformIO; MQTT → Home Assistant | AtomS3R Ext fleet; scale BLE → MQTT |
-| **clip-core** | shared clip format, vault schema | Shared JS library | `packages/clip-core/` | npm workspace | Used by Summary / clip format tests |
+| **clip-core** | shared clip format, vault schema | Shared JS library | `packages/clip-core/` | npm workspace | Clip format + vault helpers; Mac clipper has Swift twin |
 
 ## Planned
 
@@ -48,7 +48,7 @@ When user says **widgets** / **desktop widgets**, they mean Übersicht.
 | User says… | Work here | Unsure? |
 |------------|-----------|---------|
 | Summary, chrome-summary, Gemini summarize | `apps/chrome-summary/` | — |
-| Supertools, chrome-supertools, copy all urls | `apps/chrome-supertools/` | — |
+| Supertools, chrome-supertools, copy all open links, copy link cleaned | `apps/chrome-supertools/` | — |
 | Clipper, Second Brain clip, Obsidian bookmark menu | `apps/macos-secondbrain-clipper/` | — |
 | Instagram, download post/reel, saved sync | `apps/instagram-downloader/` | — |
 | ESP32, Atom, AtomS3R, scale, RunSTAR | `apps/ESP32/` | — |

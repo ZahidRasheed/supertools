@@ -2,9 +2,10 @@
 
 Chrome extension with a popup menu of small tools.
 
-**v1 tools**
+**Tools**
 
-- **Copy all urls** — copies `http`/`https` tab URLs from the current window to the clipboard (one URL per line).
+- **Copy all open links** — copies `http`/`https` tab URLs from the current window (blank line between each)
+- **Copy Link (Cleaned)** — copies the active tab URL with query string and hash removed (origin + path only)
 
 ## Install
 
@@ -17,13 +18,12 @@ Chrome extension with a popup menu of small tools.
 
 ## Use
 
-1. Open the tabs you care about in the current window
-2. Click the **Supertools** icon
-3. Click **Copy all urls**
-4. Paste wherever you need the list
+1. Click the **Supertools** (robot) icon
+2. Pick a tool
+3. Paste wherever you need the result
 
 ## Add a tool
 
 1. Add `tools/<name>.js` exporting `async function run()` that returns a status string
-2. Register `{ id, label, run }` in `tools/registry.js`
+2. Register `{ id, label, icon, run }` in `tools/registry.js` (add an SVG key in `tools/icons.js` if needed)
 3. Add permissions in `manifest.json` only if the new tool needs them

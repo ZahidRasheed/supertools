@@ -144,6 +144,13 @@ function looksLikeHtml(text) {
   return /<\/?(?:p|ul|ol|li|strong|h[2-4]|em|b|i)\b/i.test(text.trim());
 }
 
+/** Drop every attribute (onclick, onerror, href=javascript:, …). */
+export function stripAllAttributes(el) {
+  while (el.attributes?.length) {
+    el.removeAttribute(el.attributes[0].name);
+  }
+}
+
 function sanitizeHtml(html) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const root = doc.body;
@@ -158,6 +165,7 @@ function sanitizeHtml(html) {
           clean(fragment);
           return;
         }
+        stripAllAttributes(child);
         clean(child);
       }
     });

@@ -5,9 +5,9 @@ export function httpUrlsFromTabs(tabs) {
 }
 
 export function urlsToClipboardText(urls) {
-  return urls.join('\n');
+  return urls.join('\n\n');
 }
 
 export function copyStatusMessage(count) {
-  return count > 0 ? `Copied ${count} URLs` : 'No http(s) tabs in this window';
+  return count > 0 ? `Copied ${count} links` : 'No http(s) tabs in this window';
 }

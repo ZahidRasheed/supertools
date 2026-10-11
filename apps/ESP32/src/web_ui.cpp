@@ -26,17 +26,38 @@ static String htmlEscape(const String &in) {
   return out;
 }
 
+static bool webPasswordSet(const DeviceConfig &cfg) {
+  return cfg.mqttPassword.length() > 0;
+}
+
+static String webAuthUser(const DeviceConfig &cfg) {
+  if (cfg.mqttUser.length())
+    return cfg.mqttUser;
+  return String("admin");
+}
+
+/** When MQTT password is set, require HTTP Basic. Open during bootstrap. */
+static bool requireWebAuth(WebServer &server) {
+  DeviceConfig cfg = configLoad();
+  if (!webPasswordSet(cfg))
+    return true;
+  if (server.authenticate(webAuthUser(cfg).c_str(), cfg.mqttPassword.c_str()))
+    return true;
+  server.requestAuthentication();
+  return false;
+}
+
 static String pageHtml(const DeviceConfig &cfg) {
   const String name = htmlEscape(cfg.deviceName);
   const String mode = htmlEscape(cfg.mode);
   const String host = htmlEscape(cfg.mqttHost);
   const String user = htmlEscape(cfg.mqttUser);
-  const String pass = htmlEscape(cfg.mqttPassword);
   const String topic = htmlEscape(cfg.mqttBaseTopic);
   const String prefix = htmlEscape(cfg.scaleNamePrefix);
   const String ip = htmlEscape(wifiIp());
   const String ssid = htmlEscape(wifiSsid());
   const uint8_t sex = cfg.userSex ? cfg.userSex : 1;
+  const bool locked = webPasswordSet(cfg);
 
   String html;
   html.reserve(14000);
@@ -56,7 +77,7 @@ static String pageHtml(const DeviceConfig &cfg) {
             ".secondary{background:#333}"
             ".card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;"
             "padding:1rem;margin:1rem 0}"
-            ".ok{color:#4ade80}.muted{color:#888;font-size:.9rem}"
+            ".ok{color:#4ade80}.warn{color:#fbbf24}.muted{color:#888;font-size:.9rem}"
             "table.log{width:100%;border-collapse:collapse;font-size:.85rem}"
             "table.log th,table.log td{text-align:left;padding:.35rem .4rem;"
             "border-bottom:1px solid #2a2a2a;vertical-align:top}"
@@ -70,6 +91,12 @@ static String pageHtml(const DeviceConfig &cfg) {
           "</b><br>MQTT: <b>" + htmlEscape(mqttStatusText()) +
           "</b><br>Scale: <b>" + htmlEscape(scaleStatusText()) +
           "</b><br>Also try: <b>http://atoms3r.local/</b></p></div>";
+
+  if (!locked) {
+    html += F("<div class=card><p class=warn>Web UI and OTA are open until you set an "
+              "MQTT password below. That password also locks Save / Restart / OTA "
+              "(HTTP Basic; username = MQTT user or <b>admin</b>).</p></div>");
+  }
 
   html += F("<div class=card><h2>This device</h2><form method=POST action=/save>");
   html += "<label>Name (unique in the house)</label>"
@@ -92,9 +119,11 @@ static String pageHtml(const DeviceConfig &cfg) {
   html += "<label>Port</label><input name=mqttPort type=number value=" +
           String(cfg.mqttPort) + ">";
   html += "<label>Username (optional)</label><input name=mqttUser value=\"" + user + "\">";
-  html += "<label>Password (optional)</label>"
-          "<input name=mqttPassword type=password value=\"" +
-          pass + "\">";
+  html += "<label>Password</label>"
+          "<input name=mqttPassword type=password value=\"\" autocomplete=new-password "
+          "placeholder=\"";
+  html += locked ? "unchanged if blank" : "set to lock web UI + OTA";
+  html += "\">";
   html += "<label>Base topic</label><input name=mqttTopic value=\"" + topic +
           "\" placeholder=\"atoms3r\">";
   html += "<label>Scale Bluetooth name prefix</label><input name=scalePrefix value=\"" +
@@ -122,9 +151,13 @@ static String pageHtml(const DeviceConfig &cfg) {
             "If none yet this boot, sends dummy 93.70&nbsp;kg + 597&nbsp;Ω.</p>"
             "</form></div>");
 
-  html += F("<div class=card><h2>Updates &amp; Wi‑Fi</h2>"
-            "<a class=\"btn secondary\" href=/update>Upload new firmware (OTA)</a>"
-            "<form method=POST action=/wifi-portal style=\"display:inline\">"
+  html += F("<div class=card><h2>Updates &amp; Wi‑Fi</h2>");
+  if (locked) {
+    html += F("<a class=\"btn secondary\" href=/update>Upload new firmware (OTA)</a>");
+  } else {
+    html += F("<p class=muted>OTA disabled until MQTT password is set.</p>");
+  }
+  html += F("<form method=POST action=/wifi-portal style=\"display:inline\">"
             "<button class=secondary type=submit>Change Wi‑Fi</button></form>"
             "<form method=POST action=/reboot style=\"display:inline\">"
             "<button class=secondary type=submit>Restart</button></form>"
@@ -162,6 +195,7 @@ void webBegin(WebServer &server) {
     doc["ip"] = wifiIp();
     doc["mode"] = cfg.mode;
     doc["mqtt_host"] = cfg.mqttHost;
+    doc["web_locked"] = webPasswordSet(cfg);
     doc["uptime_ms"] = millis();
     String body;
     serializeJson(doc, body);
@@ -169,31 +203,45 @@ void webBegin(WebServer &server) {
   });
 
   server.on("/save", HTTP_POST, [&server]() {
+    if (!requireWebAuth(server))
+      return;
     DeviceConfig cfg = configLoad();
     if (server.hasArg("deviceName")) {
       cfg.deviceName = server.arg("deviceName");
       cfg.deviceName.trim();
     }
-    if (server.hasArg("mode")) cfg.mode = server.arg("mode");
+    if (server.hasArg("mode"))
+      cfg.mode = server.arg("mode");
     if (server.hasArg("mqttHost")) {
       cfg.mqttHost = server.arg("mqttHost");
       cfg.mqttHost.trim();
     }
-    if (server.hasArg("mqttPort")) cfg.mqttPort = server.arg("mqttPort").toInt();
+    if (server.hasArg("mqttPort"))
+      cfg.mqttPort = server.arg("mqttPort").toInt();
     if (server.hasArg("mqttUser")) {
       cfg.mqttUser = server.arg("mqttUser");
       cfg.mqttUser.trim();
     }
-    if (server.hasArg("mqttPassword")) cfg.mqttPassword = server.arg("mqttPassword");
+    // Blank password field keeps the existing secret (never echoed in HTML).
+    if (server.hasArg("mqttPassword")) {
+      const String p = server.arg("mqttPassword");
+      if (p.length())
+        cfg.mqttPassword = p;
+    }
     if (server.hasArg("mqttTopic")) {
       cfg.mqttBaseTopic = server.arg("mqttTopic");
       cfg.mqttBaseTopic.trim();
     }
-    if (server.hasArg("scalePrefix")) cfg.scaleNamePrefix = server.arg("scalePrefix");
-    if (server.hasArg("userSex")) cfg.userSex = server.arg("userSex").toInt();
-    if (server.hasArg("userAge")) cfg.userAge = server.arg("userAge").toInt();
-    if (server.hasArg("userHeight")) cfg.userHeightCm = server.arg("userHeight").toInt();
-    if (cfg.mqttPort == 0) cfg.mqttPort = 1883;
+    if (server.hasArg("scalePrefix"))
+      cfg.scaleNamePrefix = server.arg("scalePrefix");
+    if (server.hasArg("userSex"))
+      cfg.userSex = server.arg("userSex").toInt();
+    if (server.hasArg("userAge"))
+      cfg.userAge = server.arg("userAge").toInt();
+    if (server.hasArg("userHeight"))
+      cfg.userHeightCm = server.arg("userHeight").toInt();
+    if (cfg.mqttPort == 0)
+      cfg.mqttPort = 1883;
     configSave(cfg);
     server.send(200, "text/html",
                 "<html><body style=\"font-family:system-ui;background:#111;color:#eee;"
@@ -212,6 +260,8 @@ void webBegin(WebServer &server) {
   });
 
   server.on("/log-clear", HTTP_POST, [&server]() {
+    if (!requireWebAuth(server))
+      return;
     logClear();
     logEvent("sys", "log cleared");
     server.sendHeader("Location", "/");
@@ -219,6 +269,8 @@ void webBegin(WebServer &server) {
   });
 
   server.on("/ble-clear", HTTP_POST, [&server]() {
+    if (!requireWebAuth(server))
+      return;
     bleCaptureClear();
     logEvent("sys", "BLE capture cleared");
     server.sendHeader("Location", "/");
@@ -226,6 +278,8 @@ void webBegin(WebServer &server) {
   });
 
   server.on("/replay-payload", HTTP_POST, [&server]() {
+    if (!requireWebAuth(server))
+      return;
     const bool had = scaleLastPayloadSummary().indexOf("none") < 0;
     const bool ok = scaleReplayLastPayload();
     String body =
@@ -242,13 +296,16 @@ void webBegin(WebServer &server) {
   });
 
   server.on("/test-weight", HTTP_POST, [&server]() {
-    // Keep old URL working → same as replay (dummy if empty).
+    if (!requireWebAuth(server))
+      return;
     server.sendHeader("Location", "/");
     scaleReplayLastPayload();
     server.send(303);
   });
 
   server.on("/wifi-portal", HTTP_POST, [&server]() {
+    if (!requireWebAuth(server))
+      return;
     server.send(200, "text/plain",
                 "Opening WiFi setup network AtomS3R-Setup. Connect to it, "
                 "then open http://192.168.4.1/");
@@ -257,6 +314,8 @@ void webBegin(WebServer &server) {
   });
 
   server.on("/reboot", HTTP_POST, [&server]() {
+    if (!requireWebAuth(server))
+      return;
     server.send(200, "text/plain", "Restarting...");
     delay(300);
     ESP.restart();
@@ -266,10 +325,23 @@ void webBegin(WebServer &server) {
   Serial.println("[web] http://atoms3r.local/  or  http://" + wifiIp() + "/");
 }
 
+static bool gOtaEnabled = false;
+
 void otaBegin(WebServer &server) {
+  DeviceConfig cfg = configLoad();
+  if (!webPasswordSet(cfg)) {
+    gOtaEnabled = false;
+    Serial.println("[ota] disabled until MQTT password is set");
+    return;
+  }
   ElegantOTA.begin(&server);
+  ElegantOTA.setAuth(webAuthUser(cfg).c_str(), cfg.mqttPassword.c_str());
   ElegantOTA.setAutoReboot(true);
-  Serial.println("[ota] upload page at /update");
+  gOtaEnabled = true;
+  Serial.println("[ota] upload page at /update (HTTP Basic)");
 }
 
-void otaLoop() { ElegantOTA.loop(); }
+void otaLoop() {
+  if (gOtaEnabled)
+    ElegantOTA.loop();
+}

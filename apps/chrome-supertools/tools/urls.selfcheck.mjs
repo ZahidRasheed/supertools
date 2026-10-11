@@ -11,9 +11,10 @@ assert.deepEqual(
   ]),
   ['https://a.example', 'http://b.example']
 );
-assert.equal(urlsToClipboardText(['https://a.example', 'http://b.example']), 'https://a.example\nhttp://b.example');
+assert.equal(urlsToClipboardText(['https://a.example', 'http://b.example']), 'https://a.example\n\nhttp://b.example');
+assert.equal(urlsToClipboardText(['https://only.example']), 'https://only.example');
 assert.equal(urlsToClipboardText([]), '');
 assert.deepEqual(httpUrlsFromTabs([]), []);
-assert.equal(copyStatusMessage(2), 'Copied 2 URLs');
+assert.equal(copyStatusMessage(2), 'Copied 2 links');
 assert.equal(copyStatusMessage(0), 'No http(s) tabs in this window');
 console.log('urls.selfcheck: ok');

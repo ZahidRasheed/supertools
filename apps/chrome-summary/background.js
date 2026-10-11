@@ -6,115 +6,79 @@ import { analyzePageForWarnings } from './lib/preflight.js';
 import { DEFAULT_PROMPT, DEFAULT_UI, normalizeUrl } from './lib/utils.js';
 
 const SETTINGS_KEY = 'settings';
+const API_KEY_KEY = 'apiKey';
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
-
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url?.startsWith('http')) {
-    ensureContentScripts(tabId);
-  }
-});
-
-chrome.runtime.onStartup.addListener(async () => {
-  const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
-  await Promise.all(tabs.map((tab) => ensureContentScripts(tab.id)));
-});
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.get(SETTINGS_KEY).then(async (data) => {
     if (!data[SETTINGS_KEY]) {
       await chrome.storage.sync.set({
         [SETTINGS_KEY]: {
-          apiKey: '',
           permanentPrompt: DEFAULT_PROMPT,
           model: 'gemini-2.5-flash',
           ui: { ...DEFAULT_UI },
         },
       });
     }
-
-    const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
-    await Promise.all(tabs.map((tab) => ensureContentScripts(tab.id)));
   });
   pruneExpiredCache();
 });
 
+/**
+ * Non-secret settings sync across devices; apiKey stays in local storage only.
+ * Migrates a legacy sync apiKey into local on first read.
+ */
 async function getSettings() {
-  const data = await chrome.storage.sync.get(SETTINGS_KEY);
-  const settings = data[SETTINGS_KEY] || {
-    apiKey: '',
-    permanentPrompt: DEFAULT_PROMPT,
-    model: 'gemini-2.5-flash',
-    ui: { ...DEFAULT_UI },
+  const [syncData, localData] = await Promise.all([
+    chrome.storage.sync.get(SETTINGS_KEY),
+    chrome.storage.local.get(API_KEY_KEY),
+  ]);
+
+  const synced = syncData[SETTINGS_KEY] || {};
+  let apiKey = typeof localData[API_KEY_KEY] === 'string' ? localData[API_KEY_KEY] : '';
+
+  if (!apiKey && typeof synced.apiKey === 'string' && synced.apiKey) {
+    apiKey = synced.apiKey;
+    await chrome.storage.local.set({ [API_KEY_KEY]: apiKey });
+    const { apiKey: _drop, ...rest } = synced;
+    await chrome.storage.sync.set({ [SETTINGS_KEY]: rest });
+  }
+
+  return {
+    apiKey,
+    permanentPrompt: synced.permanentPrompt || DEFAULT_PROMPT,
+    model: synced.model || 'gemini-2.5-flash',
+    ui: { ...DEFAULT_UI, ...(synced.ui || {}) },
   };
-  settings.ui = { ...DEFAULT_UI, ...(settings.ui || {}) };
-  return settings;
+}
+
+async function saveSettings(partial) {
+  const current = await getSettings();
+  const next = { ...current, ...partial };
+  if (partial?.ui) {
+    next.ui = { ...current.ui, ...partial.ui };
+  }
+
+  const { apiKey, permanentPrompt, model, ui } = next;
+  await Promise.all([
+    chrome.storage.local.set({ [API_KEY_KEY]: apiKey || '' }),
+    chrome.storage.sync.set({
+      [SETTINGS_KEY]: { permanentPrompt, model, ui },
+    }),
+  ]);
+  return next;
 }
 
 async function extractContentFromTab(tabId) {
-  await ensureContentScripts(tabId);
-
-  try {
-    const response = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_CONTENT' });
-    if (response?.ok) return response.content;
-    if (response?.error) throw new Error(response.error);
-  } catch (err) {
-    if (err.message && !err.message.includes('Receiving end does not exist')) {
-      throw err;
-    }
-  }
-
-  const [result] = await chrome.scripting.executeScript({
-    target: { tabId },
-    func: extractPageContentInline,
-  });
-
-  if (!result?.result?.text?.trim()) {
+  const injected = await ensureContentScripts(tabId);
+  if (!injected) {
     throw new Error('Could not read page content. Try refreshing the tab.');
   }
-  return result.result;
-}
 
-function extractPageContentInline() {
-  const noise = [
-    'script', 'style', 'noscript', 'nav', 'footer', 'header', 'aside',
-    '[role="navigation"]', '[role="banner"]', '[role="contentinfo"]',
-  ];
-  const mainSelectors = ['article', '[role="main"]', 'main', '.article-body', '.post-content', '.entry-content'];
-
-  let root = null;
-  let extraction = { method: 'inline-fallback', selector: null, foundSemanticTag: false };
-
-  for (const sel of mainSelectors) {
-    const el = document.querySelector(sel);
-    if (el && (el.innerText || '').trim().length > 200) {
-      root = el;
-      extraction = {
-        method: sel === 'article' ? 'article' : sel === 'main' || sel === '[role="main"]' ? 'main' : 'content-class',
-        selector: sel,
-        foundSemanticTag: true,
-      };
-      break;
-    }
-  }
-
-  if (!root) {
-    root = document.body;
-    extraction = { method: 'body', selector: 'body', foundSemanticTag: false };
-  }
-
-  const clone = root.cloneNode(true);
-  noise.forEach((sel) => clone.querySelectorAll(sel).forEach((el) => el.remove()));
-  const text = (clone.innerText || clone.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
-  const wordCount = text.split(/\s+/).filter(Boolean).length;
-
-  return {
-    title: document.title || '',
-    url: location.href,
-    text,
-    wordCount,
-    extraction,
-  };
+  const response = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_CONTENT' });
+  if (response?.ok) return response.content;
+  throw new Error(response?.error || 'Could not read page content. Try refreshing the tab.');
 }
 
 function buildEffectivePrompt(permanentPrompt, sessionOverride) {
@@ -157,15 +121,8 @@ async function handleMessage(message) {
     case 'GET_SETTINGS':
       return { ok: true, settings: await getSettings() };
 
-    case 'SAVE_SETTINGS': {
-      const current = await getSettings();
-      const settings = { ...current, ...message.settings };
-      if (message.settings?.ui) {
-        settings.ui = { ...current.ui, ...message.settings.ui };
-      }
-      await chrome.storage.sync.set({ [SETTINGS_KEY]: settings });
-      return { ok: true, settings };
-    }
+    case 'SAVE_SETTINGS':
+      return { ok: true, settings: await saveSettings(message.settings || {}) };
 
     case 'ENSURE_CONTENT_SCRIPTS': {
       const tab = await resolveTargetTab(message);
@@ -280,7 +237,7 @@ async function handleMessage(message) {
       const url = normalizeUrl(message.url);
       const all = await chrome.storage.local.get(null);
       const toRemove = Object.entries(all)
-        .filter(([, v]) => v?.url === url)
+        .filter(([k, v]) => k.startsWith('summary:') && v?.url === url)
         .map(([k]) => k);
       if (toRemove.length) await chrome.storage.local.remove(toRemove);
       return { ok: true };
